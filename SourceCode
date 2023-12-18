@@ -1,0 +1,52 @@
+import cv2
+import numpy as np
+
+# Initialize the camera
+cap = cv2.VideoCapture(0)  # 0 for the default camera, you can change it to a video file path if needed
+
+# Create an empty list to store object dimensions
+object_dimensions = []
+
+while True:
+    # Read a frame from the camera
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Convert the frame to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Apply Canny edge detection
+    edges = cv2.Canny(gray, 100, 200)  # You can adjust the threshold values as needed
+
+    # Find contours in the edge image
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        # Find the bounding box around the contour
+        x, y, w, h = cv2.boundingRect(contour)
+
+        # Append the dimensions to the object_dimensions list
+        object_dimensions.append((w, h))
+
+        # Draw the bounding box on the original frame
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Calculate and display the dimensions
+        dimensions = f"Width: {w} pixels, Height: {h} pixels"
+        cv2.putText(frame, dimensions, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+    # Display the original frame with dimensions
+    cv2.imshow('Object Dimension Detection', frame)
+
+    # Break the loop when 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release the camera and close all OpenCV windows
+cap.release()
+cv2.destroyAllWindows()
+
+# Print the dimensions of all detected objects
+for i, (width, height) in enumerate(object_dimensions):
+    print(f"Object {i + 1}: Width = {width} pixels, Height = {height} pixels")
